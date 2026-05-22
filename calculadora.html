@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#16110d">
+<title>Calculadora 3D · Precificação Bambu Lab A1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Space+Mono:wght@400;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16110d;
+    --bg2:#1f1812;
+    --card:#241c15;
+    --card-hi:#2c2219;
+    --line:#3a2d20;
+    --line-soft:#2e241b;
+    --txt:#f4ece2;
+    --txt-dim:#b3a08c;
+    --txt-faint:#7d6c5a;
+    --amber:#ff8a3d;
+    --amber-hi:#ffb070;
+    --amber-glow:rgba(255,138,61,.35);
+    --molten:#ff5e1a;
+    --green:#7bd66a;
+    --radius:18px;
+    --radius-sm:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);}
+  body{
+    font-family:'Instrument Sans',system-ui,sans-serif;
+    color:var(--txt);
+    min-height:100vh;
+    line-height:1.5;
+    background:
+      radial-gradient(1100px 500px at 50% -8%, rgba(255,94,26,.16), transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,.012) 6px, rgba(255,255,255,.012) 7px),
+      var(--bg);
+    padding:0 0 60px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px;}
+
+  /* Header */
+  header{padding:30px 0 18px;text-align:center;position:relative;}
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--amber-hi);
+    border:1px solid var(--line);background:var(--card);
+    padding:6px 13px;border-radius:100px;margin-bottom:16px;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--molten);
+    box-shadow:0 0 9px 1px var(--molten);animation:pulse 2.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  h1{
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+    font-size:clamp(28px,8vw,38px);line-height:1.02;letter-spacing:-.02em;
+  }
+  h1 .glow{
+    background:linear-gradient(120deg,var(--amber-hi),var(--molten));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  header p{color:var(--txt-dim);font-size:14px;margin-top:9px;}
+
+  /* Cards */
+  .card{
+    background:linear-gradient(180deg,var(--card-hi),var(--card));
+    border:1px solid var(--line-soft);border-radius:var(--radius);
+    padding:20px 18px;margin-top:16px;
+    box-shadow:0 14px 30px -22px rgba(0,0,0,.9);
+  }
+  .card-title{
+    display:flex;align-items:center;gap:9px;
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;
+    letter-spacing:.01em;margin-bottom:4px;
+  }
+  .card-title .ico{
+    width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    background:var(--amber-glow);font-size:14px;flex:none;
+  }
+  .card-sub{color:var(--txt-faint);font-size:12.5px;margin:-2px 0 16px 35px;}
+
+  /* Field */
+  .field{margin-bottom:15px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;font-size:13px;color:var(--txt-dim);margin-bottom:7px;font-weight:500;
+  }
+  .field label .hint{color:var(--txt-faint);font-weight:400;}
+  .input-shell{position:relative;display:flex;align-items:center;}
+  .input-shell .pre{
+    position:absolute;left:14px;font-family:'Space Mono',monospace;
+    font-size:14px;color:var(--txt-faint);pointer-events:none;
+  }
+  .input-shell .suf{
+    position:absolute;right:14px;font-family:'Space Mono',monospace;
+    font-size:13px;color:var(--txt-faint);pointer-events:none;
+  }
+  input[type=number],input[type=text]{
+    width:100%;background:var(--bg2);border:1.5px solid var(--line);
+    border-radius:var(--radius-sm);color:var(--txt);
+    font-family:'Space Mono',monospace;font-size:16px;font-weight:700;
+    padding:13px 14px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input.has-pre{padding-left:34px;}
+  input.has-suf{padding-right:48px;}
+  input:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow);}
+  input::placeholder{color:var(--txt-faint);font-weight:400;}
+  /* hide spinners */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input[type=number]{-moz-appearance:textfield;}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+
+  /* Advanced toggle */
+  .adv-head{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    background:none;border:none;cursor:pointer;color:var(--txt);
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;
+    padding:0;
+  }
+  .adv-head .left{display:flex;align-items:center;gap:9px;}
+  .chev{transition:transform .25s;color:var(--amber-hi);font-size:13px;}
+  .adv.open .chev{transform:rotate(180deg);}
+  .adv-body{
+    max-height:0;overflow:hidden;transition:max-height .35s ease;
+  }
+  .adv.open .adv-body{max-height:1400px;}
+  .adv-inner{padding-top:18px;}
+  .preset-note{
+    font-size:11.5px;color:var(--txt-faint);font-family:'Space Mono',monospace;
+    background:var(--bg2);border:1px dashed var(--line);border-radius:10px;
+    padding:9px 11px;margin-top:4px;line-height:1.5;
+  }
+
+  /* Result */
+  .result{
+    background:
+      radial-gradient(420px 180px at 50% 0%, rgba(255,94,26,.22), transparent 70%),
+      linear-gradient(180deg,var(--card-hi),var(--card));
+    border:1px solid var(--line);
+    position:relative;overflow:hidden;
+  }
+  .result::before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 5px,rgba(255,138,61,.025) 5px,rgba(255,138,61,.025) 6px);
+    pointer-events:none;
+  }
+  .price-label{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--amber-hi);text-align:center;
+  }
+  .price-big{
+    font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+    font-size:clamp(46px,15vw,64px);text-align:center;line-height:1;
+    letter-spacing:-.03em;margin:6px 0 2px;
+    text-shadow:0 0 38px var(--amber-glow);
+  }
+  .price-big .cur{font-size:.45em;color:var(--amber-hi);vertical-align:super;font-weight:700;margin-right:3px;}
+  .price-round{
+    text-align:center;font-family:'Space Mono',monospace;font-size:13px;
+    color:var(--txt-dim);margin-top:2px;
+  }
+  .price-round b{color:var(--txt);}
+
+  .pills{display:flex;gap:10px;margin-top:18px;}
+  .pill{
+    flex:1;background:var(--bg2);border:1px solid var(--line-soft);
+    border-radius:var(--radius-sm);padding:12px 10px;text-align:center;
+  }
+  .pill .k{font-size:10.5px;color:var(--txt-faint);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Mono',monospace;}
+  .pill .v{font-family:'Space Mono',monospace;font-weight:700;font-size:17px;margin-top:4px;}
+  .pill .v.cost{color:var(--txt);}
+  .pill .v.profit{color:var(--green);}
+
+  /* Breakdown */
+  .break{margin-top:18px;border-top:1px solid var(--line-soft);padding-top:14px;}
+  .brow{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:13.5px;padding:7px 0;
+  }
+  .brow .bl{display:flex;align-items:center;gap:9px;color:var(--txt-dim);}
+  .brow .bl .sw{width:9px;height:9px;border-radius:3px;flex:none;}
+  .brow .bv{font-family:'Space Mono',monospace;font-weight:700;color:var(--txt);}
+  .brow.tot{border-top:1px dashed var(--line);margin-top:6px;padding-top:11px;font-size:15px;}
+  .brow.tot .bl{color:var(--txt);font-weight:600;font-family:'Bricolage Grotesque',sans-serif;}
+  .brow.tot .bv{color:var(--amber-hi);font-size:16px;}
+
+  /* bar */
+  .bar{height:9px;border-radius:6px;background:var(--bg2);overflow:hidden;display:flex;margin-top:14px;border:1px solid var(--line-soft);}
+  .bar span{height:100%;transition:width .3s;}
+
+  footer{text-align:center;color:var(--txt-faint);font-size:11.5px;margin-top:26px;line-height:1.7;font-family:'Space Mono',monospace;}
+  footer b{color:var(--txt-dim);}
+  .reset{
+    margin-top:14px;width:100%;background:var(--bg2);border:1px solid var(--line);
+    color:var(--txt-dim);font-family:'Space Mono',monospace;font-size:12px;
+    padding:11px;border-radius:var(--radius-sm);cursor:pointer;letter-spacing:.05em;
+    transition:border-color .15s,color .15s;
+  }
+  .reset:active{border-color:var(--amber);color:var(--amber-hi);}
+
+  .fade{animation:fade .5s ease both;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="fade">
+    <span class="badge"><span class="dot"></span>Bambu Lab A1 · Paraná</span>
+    <h1>Precifica<span class="glow">3D</span></h1>
+    <p>Coloque as gramas e o tempo — o resto a calculadora resolve.</p>
+  </header>
+
+  <!-- ENTRADA PRINCIPAL -->
+  <section class="card fade" style="animation-delay:.05s">
+    <div class="card-title"><span class="ico">⚙️</span>Dados da peça</div>
+    <div class="card-sub">Esses dois números o Bambu Studio te mostra antes de imprimir.</div>
+
+    <div class="field">
+      <label>Filamento usado <span class="hint">— em gramas (g)</span></label>
+      <div class="input-shell">
+        <input id="gramas" class="has-suf" type="number" inputmode="decimal" placeholder="0" value="">
+        <span class="suf">g</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tempo de impressão</label>
+      <div class="row2">
+        <div class="input-shell">
+          <input id="horas" class="has-suf" type="number" inputmode="numeric" placeholder="0" value="">
+          <span class="suf">h</span>
+        </div>
+        <div class="input-shell">
+          <input id="minutos" class="has-suf" type="number" inputmode="numeric" placeholder="0" value="">
+          <span class="suf">min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Custos extras <span class="hint">— embalagem, parafusos, ímã… (opcional)</span></label>
+      <div class="input-shell">
+        <span class="pre">R$</span>
+        <input id="extras" class="has-pre" type="number" inputmode="decimal" placeholder="0,00" value="">
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTADO -->
+  <section class="card result fade" style="animation-delay:.1s">
+    <div class="price-label">Preço de venda sugerido</div>
+    <div class="price-big"><span class="cur">R$</span><span id="precoVenda">0,00</span></div>
+    <div class="price-round">arredondado: <b id="precoRound">R$ 0</b></div>
+
+    <div class="pills">
+      <div class="pill"><div class="k">Custo total</div><div class="v cost" id="custoTotal">R$ 0,00</div></div>
+      <div class="pill"><div class="k">Seu lucro</div><div class="v profit" id="lucro">R$ 0,00</div></div>
+    </div>
+
+    <div class="bar" id="bar"></div>
+
+    <div class="break" id="break">
+      <div class="brow"><span class="bl"><span class="sw" style="background:#ff8a3d"></span>Material (filamento)</span><span class="bv" id="cMat">R$ 0,00</span></div>
+      <div class="brow"><span class="bl"><span class="sw" style="background:#ffce5e"></span>Energia elétrica</span><span class="bv" id="cEne">R$ 0,00</span></div>
+      <div class="brow"><span class="bl"><span class="sw" style="background:#7bd66a"></span>Desgaste da máquina</span><span class="bv" id="cDes">R$ 0,00</span></div>
+      <div class="brow"><span class="bl"><span class="sw" style="background:#5ec8ff"></span>Mão de obra</span><span class="bv" id="cMao">R$ 0,00</span></div>
+      <div class="brow"><span class="bl"><span class="sw" style="background:#c98bff"></span>Reserva p/ falhas</span><span class="bv" id="cFal">R$ 0,00</span></div>
+      <div class="brow"><span class="bl"><span class="sw" style="background:#888"></span>Custos extras</span><span class="bv" id="cExt">R$ 0,00</span></div>
+      <div class="brow tot"><span class="bl">Custo total</span><span class="bv" id="cTot">R$ 0,00</span></div>
+    </div>
+  </section>
+
+  <!-- AVANÇADO -->
+  <section class="card adv fade" id="adv" style="animation-delay:.15s">
+    <button class="adv-head" id="advHead">
+      <span class="left"><span class="ico" style="width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--amber-glow);font-size:14px;">🛠️</span>Ajustes &amp; parâmetros</span>
+      <span class="chev">▼</span>
+    </button>
+    <div class="adv-body">
+      <div class="adv-inner">
+
+        <div class="field">
+          <label>Preço do rolo de filamento <span class="hint">— por kg</span></label>
+          <div class="input-shell">
+            <span class="pre">R$</span>
+            <input id="precoKg" class="has-pre has-suf" type="number" inputmode="decimal" value="120">
+            <span class="suf">/kg</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Margem de lucro <span class="hint">— sobre o custo</span></label>
+          <div class="input-shell">
+            <input id="margem" class="has-suf" type="number" inputmode="numeric" value="100">
+            <span class="suf">%</span>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Mão de obra</label>
+            <div class="input-shell">
+              <span class="pre">R$</span>
+              <input id="maoHora" class="has-pre has-suf" type="number" inputmode="decimal" value="20">
+              <span class="suf">/h</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tempo manual</label>
+            <div class="input-shell">
+              <input id="maoMin" class="has-suf" type="number" inputmode="numeric" value="10">
+              <span class="suf">min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Taxa de falha <span class="hint">— % que se perde em erros</span></label>
+          <div class="input-shell">
+            <input id="falha" class="has-suf" type="number" inputmode="decimal" value="5">
+            <span class="suf">%</span>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Energia <span class="hint">Copel PR</span></label>
+            <div class="input-shell">
+              <span class="pre">R$</span>
+              <input id="tarifa" class="has-pre has-suf" type="number" inputmode="decimal" value="0.80">
+              <span class="suf">/kWh</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Potência <span class="hint">A1</span></label>
+            <div class="input-shell">
+              <input id="potencia" class="has-suf" type="number" inputmode="numeric" value="100">
+              <span class="suf">W</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Desgaste / depreciação da máquina <span class="hint">— por hora</span></label>
+          <div class="input-shell">
+            <span class="pre">R$</span>
+            <input id="desgaste" class="has-pre has-suf" type="number" inputmode="decimal" value="1.50">
+            <span class="suf">/h</span>
+          </div>
+        </div>
+
+        <div class="preset-note">
+          Padrões pré-ajustados: A1 ≈ 100 W (oficial Bambu: ~95 W em PLA a 220 V) · Copel/PR ≈ R$ 0,80/kWh (tarifa + ICMS, varia c/ bandeira) · desgaste estima bico+manutenção. Edite tudo conforme seus números reais.
+        </div>
+
+        <button class="reset" id="reset">↺ restaurar padrões</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Custo</b> = material + energia + desgaste + mão de obra + falhas + extras<br>
+    <b>Preço</b> = custo + margem &nbsp;·&nbsp; feito p/ Bambu Lab A1
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- persistência segura (funciona no GitHub/celular; não quebra no preview) ----
+  var KEY = "precifica3d_v1";
+  function safeLoad(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function safeSave(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+
+  var DEFAULTS = {
+    precoKg:120, margem:100, maoHora:20, maoMin:10,
+    falha:5, tarifa:0.80, potencia:100, desgaste:1.50
+  };
+
+  var ids = ["gramas","horas","minutos","extras","precoKg","margem","maoHora","maoMin","falha","tarifa","potencia","desgaste"];
+  var el = {};
+  ids.forEach(function(id){ el[id] = document.getElementById(id); });
+
+  // restaura configs salvas (só os parâmetros, não os dados da peça)
+  var saved = safeLoad();
+  Object.keys(DEFAULTS).forEach(function(k){
+    if(saved[k]!==undefined && el[k]) el[k].value = saved[k];
+  });
+
+  function num(id){ var v = parseFloat(String(el[id].value).replace(",", ".")); return isNaN(v)?0:v; }
+  function brl(v){ return v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function setTxt(id,t){ document.getElementById(id).textContent = t; }
+
+  function calc(){
+    var gramas   = num("gramas");
+    var horas    = num("horas");
+    var minutos  = num("minutos");
+    var extras   = num("extras");
+    var precoKg  = num("precoKg");
+    var margem   = num("margem");
+    var maoHora  = num("maoHora");
+    var maoMin   = num("maoMin");
+    var falha    = num("falha");
+    var tarifa   = num("tarifa");
+    var potencia = num("potencia");
+    var desgaste = num("desgaste");
+
+    var tempoH = horas + minutos/60;
+
+    var cMat = (gramas/1000) * precoKg;
+    var cEne = (potencia/1000) * tempoH * tarifa;
+    var cDes = desgaste * tempoH;
+    var cMao = maoHora * (maoMin/60);
+    var cExt = extras;
+
+    var subtotal = cMat + cEne + cDes + cMao + cExt;
+    var cFal = subtotal * (falha/100);
+    var custoTotal = subtotal + cFal;
+
+    var precoVenda = custoTotal * (1 + margem/100);
+    var lucro = precoVenda - custoTotal;
+
+    // arredonda pra cima ao próximo "número bonito"
+    var round;
+    if(precoVenda <= 0) round = 0;
+    else if(precoVenda < 20) round = Math.ceil(precoVenda);
+    else if(precoVenda < 100) round = Math.ceil(precoVenda/5)*5;
+    else round = Math.ceil(precoVenda/10)*10;
+
+    setTxt("precoVenda", brl(precoVenda));
+    setTxt("precoRound", "R$ " + round.toLocaleString("pt-BR"));
+    setTxt("custoTotal", "R$ " + brl(custoTotal));
+    setTxt("lucro", "R$ " + brl(lucro));
+
+    setTxt("cMat","R$ "+brl(cMat));
+    setTxt("cEne","R$ "+brl(cEne));
+    setTxt("cDes","R$ "+brl(cDes));
+    setTxt("cMao","R$ "+brl(cMao));
+    setTxt("cFal","R$ "+brl(cFal));
+    setTxt("cExt","R$ "+brl(cExt));
+    setTxt("cTot","R$ "+brl(custoTotal));
+
+    // barra proporcional
+    var parts = [
+      [cMat,"#ff8a3d"],[cEne,"#ffce5e"],[cDes,"#7bd66a"],
+      [cMao,"#5ec8ff"],[cFal,"#c98bff"],[cExt,"#888"]
+    ];
+    var bar = document.getElementById("bar");
+    if(custoTotal>0){
+      bar.innerHTML = parts.map(function(p){
+        var w = (p[0]/custoTotal)*100;
+        return w>0 ? '<span style="width:'+w+'%;background:'+p[1]+'"></span>' : '';
+      }).join("");
+    } else { bar.innerHTML = ""; }
+
+    // salva só os parâmetros
+    var toSave = {};
+    Object.keys(DEFAULTS).forEach(function(k){ toSave[k] = el[k].value; });
+    safeSave(toSave);
+  }
+
+  ids.forEach(function(id){
+    el[id].addEventListener("input", calc);
+  });
+
+  // toggle avançado
+  var adv = document.getElementById("adv");
+  document.getElementById("advHead").addEventListener("click", function(){
+    adv.classList.toggle("open");
+  });
+
+  // reset
+  document.getElementById("reset").addEventListener("click", function(){
+    Object.keys(DEFAULTS).forEach(function(k){ el[k].value = DEFAULTS[k]; });
+    calc();
+  });
+
+  calc();
+})();
+</script>
+</body>
+</html>
